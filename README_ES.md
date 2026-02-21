@@ -9,7 +9,7 @@ Cada desafio plantea un escenario empresarial realista. Debes disenar, desarroll
 ## Requisitos Previos
 
 - **Node.js 18+** (se recomienda la version LTS)
-- **BSV Desktop Wallet** -- descargala desde [desktop.babbage.systems](https://desktop.babbage.systems)
+- **BSV Desktop Wallet** -- descargala desde [desktop.bsvb.tech](https://desktop.bsvb.tech/)
 - **Conocimientos basicos de Next.js / React** -- estado de componentes, rutas de API, Tailwind CSS
 - Una BSV Desktop Wallet con fondos (testnet o mainnet)
 

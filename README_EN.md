@@ -9,7 +9,7 @@ Each challenge presents a realistic business scenario. You must design, build, a
 ## Prerequisites
 
 - **Node.js 18+** (LTS recommended)
-- **BSV Desktop Wallet** -- download from [desktop.babbage.systems](https://desktop.babbage.systems)
+- **BSV Desktop Wallet** -- download from [desktop.bsvb.tech](https://desktop.bsvb.tech/)
 - **Basic Next.js / React knowledge** -- component state, API routes, Tailwind CSS
 - A funded BSV Desktop Wallet (testnet or mainnet)
 
