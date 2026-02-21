@@ -1,0 +1,6 @@
+node_modules/
+.next/
+.server-wallet.json
+.identity-registry.json
+.revocation-secrets.json
+.credential-issuer-key.json
