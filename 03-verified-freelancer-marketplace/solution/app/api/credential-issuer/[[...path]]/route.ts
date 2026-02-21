@@ -1,12 +1,17 @@
 /**
- * Credential Issuer API Route
+ * Credential Issuer API Route (catch-all)
  *
- * GET  ?action=info                           → Issuer info (publicKey, schemas)
- * GET  ?action=schema&id=<schemaId>           → Get schema details
- * POST ?action=issue    body: { subjectKey, schemaId, fields }  → Issue credential
- * POST ?action=verify   body: { credential }                   → Verify credential
- * POST ?action=revoke   body: { serialNumber }                 → Revoke credential
- * GET  ?action=status&serialNumber=<sn>       → Check revocation status
+ * UI endpoints (query-param based):
+ *   GET  ?action=info                           → Issuer info (publicKey, schemas)
+ *   GET  ?action=schema&id=<schemaId>           → Get schema details
+ *   POST ?action=issue    body: { subjectKey, schemaId, fields }  → Issue credential
+ *   POST ?action=verify   body: { credential }                   → Verify credential
+ *   POST ?action=revoke   body: { serialNumber }                 → Revoke credential
+ *   GET  ?action=status&serialNumber=<sn>       → Check revocation status
+ *
+ * Library endpoints (path-based, used by acquireCredential()):
+ *   GET  /api/credential-issuer/api/info     → { certifierPublicKey, certificateType }
+ *   POST /api/credential-issuer/api/certify  → CertificateData
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -69,7 +74,6 @@ async function getIssuer() {
     // Try to get server wallet for revocation (optional — works without it)
     let revocationConfig: any = { enabled: false }
     try {
-      // Check if server wallet exists
       const walletFile = join(process.cwd(), '.server-wallet.json')
       if (existsSync(walletFile)) {
         const walletData = JSON.parse(readFileSync(walletFile, 'utf-8'))
@@ -102,10 +106,33 @@ async function getIssuer() {
   return issuerInitPromise
 }
 
-export async function GET(req: NextRequest) {
-  const action = req.nextUrl.searchParams.get('action') || 'info'
+// Helper: extract path segments from the catch-all param
+function getSubPath(params: { path?: string[] }): string | null {
+  if (!params.path || params.path.length === 0) return null
+  return params.path.join('/')
+}
+
+export async function GET(req: NextRequest, { params }: { params: Promise<{ path?: string[] }> }) {
+  const { path } = await params
+  const subPath = getSubPath({ path })
 
   try {
+    // Library endpoint: GET /api/credential-issuer/api/info
+    // Used by acquireCredential() — expects { certifierPublicKey, certificateType }
+    if (subPath === 'api/info') {
+      const issuer = await getIssuer()
+      const info = issuer.getInfo()
+      // certificateTypeBase64 = base64(schemaId) — matches CredentialSchema logic
+      const certificateType = Buffer.from('freelancer-verified', 'utf-8').toString('base64')
+      return NextResponse.json({
+        certifierPublicKey: info.publicKey,
+        certificateType,
+      })
+    }
+
+    // UI endpoints (query-param based)
+    const action = req.nextUrl.searchParams.get('action') || 'info'
+
     if (action === 'info') {
       const issuer = await getIssuer()
       const info = issuer.getInfo()
@@ -131,15 +158,31 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ success: false, error: `Unknown action: ${action}` }, { status: 400 })
   } catch (error) {
-    return NextResponse.json({ success: false, error: `${action} failed: ${(error as Error).message}` }, { status: 500 })
+    return NextResponse.json({ success: false, error: `Failed: ${(error as Error).message}` }, { status: 500 })
   }
 }
 
-export async function POST(req: NextRequest) {
-  const action = req.nextUrl.searchParams.get('action')
+export async function POST(req: NextRequest, { params }: { params: Promise<{ path?: string[] }> }) {
+  const { path } = await params
+  const subPath = getSubPath({ path })
 
   try {
     const body = await req.json()
+
+    // Library endpoint: POST /api/credential-issuer/api/certify
+    if (subPath === 'api/certify') {
+      const { identityKey, schemaId, fields } = body
+      if (!identityKey || !fields) {
+        return NextResponse.json({ error: 'Missing identityKey or fields' }, { status: 400 })
+      }
+      const issuer = await getIssuer()
+      const vc = await issuer.issue(identityKey, schemaId || 'freelancer-verified', fields)
+      // Return raw CertificateData (the library expects this, not the W3C VC wrapper)
+      return NextResponse.json(vc._bsv.certificate)
+    }
+
+    // UI endpoints (query-param based)
+    const action = req.nextUrl.searchParams.get('action')
 
     if (action === 'issue') {
       const { subjectKey, schemaId, fields } = body
@@ -167,6 +210,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: false, error: `Unknown action: ${action}` }, { status: 400 })
   } catch (error) {
-    return NextResponse.json({ success: false, error: `${action} failed: ${(error as Error).message}` }, { status: 500 })
+    return NextResponse.json({ success: false, error: `Failed: ${(error as Error).message}` }, { status: 500 })
   }
 }
