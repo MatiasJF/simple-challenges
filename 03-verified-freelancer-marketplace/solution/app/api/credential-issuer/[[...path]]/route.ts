@@ -136,7 +136,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ path
     if (action === 'info') {
       const issuer = await getIssuer()
       const info = issuer.getInfo()
-      return NextResponse.json({ success: true, ...info })
+      // Enrich schemas with certificateTypeBase64 (computed from schema id, matching CredentialSchema logic)
+      const schemas = info.schemas.map((s: any) => ({
+        ...s,
+        certificateTypeBase64: Buffer.from(s.id, 'utf-8').toString('base64')
+      }))
+      return NextResponse.json({ success: true, ...info, schemas })
     }
 
     if (action === 'schema') {

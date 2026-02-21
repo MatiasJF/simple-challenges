@@ -60,20 +60,22 @@ export async function GET(req: NextRequest) {
     }
     if (action === 'balance') {
       const wallet = await getServerWallet()
+      const client = wallet.getClient()
       const basket = req.nextUrl.searchParams.get('basket') || 'default'
-      const outputs = await wallet.listOutputs(basket, false)
-      const outputList = outputs?.outputs ?? (Array.isArray(outputs) ? outputs : [])
+      const result = await client.listOutputs({ basket })
+      const outputList = result?.outputs ?? []
       const totalSatoshis = outputList.reduce((sum: number, o: any) => sum + (o.satoshis || 0), 0)
       const spendable = outputList.filter((o: any) => o.spendable !== false)
       const spendableSatoshis = spendable.reduce((sum: number, o: any) => sum + (o.satoshis || 0), 0)
-      return NextResponse.json({ success: true, basket, totalOutputs: outputs?.totalOutputs ?? outputList.length, totalSatoshis, spendableOutputs: spendable.length, spendableSatoshis })
+      return NextResponse.json({ success: true, basket, totalOutputs: result?.totalOutputs ?? outputList.length, totalSatoshis, spendableOutputs: spendable.length, spendableSatoshis })
     }
     if (action === 'outputs') {
       const wallet = await getServerWallet()
+      const client = wallet.getClient()
       const basket = req.nextUrl.searchParams.get('basket') || 'default'
-      const raw = await wallet.listOutputs(basket, true)
-      const outputList = raw?.outputs ?? (Array.isArray(raw) ? raw : [])
-      return NextResponse.json({ success: true, basket, totalOutputs: raw?.totalOutputs ?? outputList.length, outputs: outputList.map((o: any) => ({ outpoint: o.outpoint, satoshis: o.satoshis, spendable: o.spendable })) })
+      const result = await client.listOutputs({ basket, include: 'locking scripts' })
+      const outputList = result?.outputs ?? []
+      return NextResponse.json({ success: true, basket, totalOutputs: result?.totalOutputs ?? outputList.length, outputs: outputList.map((o: any) => ({ outpoint: o.outpoint, satoshis: o.satoshis, spendable: o.spendable })) })
     }
     return NextResponse.json({ success: false, error: `Unknown action: ${action}` }, { status: 400 })
   } catch (error) {
