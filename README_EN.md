@@ -97,12 +97,88 @@ challenges/
       ...
 ```
 
+## AI-Assisted Development with the MCP Server
+
+An MCP (Model Context Protocol) server is available that gives any AI coding agent full knowledge of the `@bsv/simple` API, code patterns, gotchas, and code generation tools. This is the recommended way to tackle these challenges with AI assistance.
+
+### Installation
+
+```bash
+git clone git@github.com:MatiasJF/simple-mcp.git
+cd simple-mcp
+npm install
+npm run build
+```
+
+### Configuration
+
+Add the MCP server to your AI agent's configuration. The setup is the same for any MCP-compatible agent (Claude Code, Cursor, Windsurf, Cline, Continue, etc.) -- just point it to the built `dist/index.js` file.
+
+**Claude Code** (`~/.claude/settings.json`):
+```json
+{
+  "mcpServers": {
+    "bsv-simple": {
+      "command": "node",
+      "args": ["/absolute/path/to/simple-mcp/dist/index.js"]
+    }
+  }
+}
+```
+
+**Cursor** (`.cursor/mcp.json` in your project root):
+```json
+{
+  "mcpServers": {
+    "bsv-simple": {
+      "command": "node",
+      "args": ["/absolute/path/to/simple-mcp/dist/index.js"]
+    }
+  }
+}
+```
+
+**Windsurf** (`~/.codeium/windsurf/mcp_config.json`):
+```json
+{
+  "mcpServers": {
+    "bsv-simple": {
+      "command": "node",
+      "args": ["/absolute/path/to/simple-mcp/dist/index.js"]
+    }
+  }
+}
+```
+
+**Cline / Continue / Other MCP-compatible agents** -- follow the same pattern: set the command to `node` and the first argument to the absolute path to `simple-mcp/dist/index.js`.
+
+### What the MCP Provides
+
+| Type | Items | Description |
+|------|-------|-------------|
+| **Resources** | 11 | Full API references for wallet, tokens, inscriptions, MessageBox, certification, DID, credentials, overlay, plus Next.js integration guide, gotchas, and patterns |
+| **Tools** | 9 | Code generators for scaffolding, wallet setup, payments, tokens, inscriptions, MessageBox, server routes, credentials, and DID integration |
+| **Prompts** | 3 | Guided workflows for integrating features, adding capabilities, and debugging |
+
+### Usage
+
+Once configured, the agent automatically has access to the full `@bsv/simple` knowledge base. You can ask it to:
+
+- Generate a complete Next.js project scaffold with BSV integration
+- Create any server API route (identity registry, DID resolver, server wallet, credential issuer) -- all 3-line handler factories
+- Write payment, token, inscription, or MessageBox code
+- Debug BSV-specific issues (the MCP includes all critical gotchas)
+- Explain how any module works with full type signatures
+
+No need to feed it documentation manually -- the MCP server provides everything.
+
 ## Getting Started
 
 1. Pick a challenge that matches your experience level.
 2. Read the challenge spec (`README_EN.md` or `README_ES.md` in the challenge folder).
-3. Create a new Next.js project in your workspace (or copy the `solution/` skeleton and clear `page.tsx`).
-4. Build your solution using only the `@bsv/simple` docs.
-5. When finished, compare your approach with the reference implementation in `solution/`.
+3. (Optional) Set up the MCP server for AI-assisted development (see above).
+4. Create a new Next.js project in your workspace (or copy the `solution/` skeleton and clear `page.tsx`).
+5. Build your solution using only the `@bsv/simple` docs.
+6. When finished, compare your approach with the reference implementation in `solution/`.
 
 Good luck!

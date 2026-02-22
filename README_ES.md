@@ -97,12 +97,88 @@ challenges/
       ...
 ```
 
+## Desarrollo Asistido por IA con el Servidor MCP
+
+Un servidor MCP (Model Context Protocol) esta disponible que le da a cualquier agente de IA el conocimiento completo de la API de `@bsv/simple`, patrones de codigo, errores comunes y herramientas de generacion de codigo. Esta es la forma recomendada de abordar estos desafios con asistencia de IA.
+
+### Instalacion
+
+```bash
+git clone git@github.com:MatiasJF/simple-mcp.git
+cd simple-mcp
+npm install
+npm run build
+```
+
+### Configuracion
+
+Agrega el servidor MCP a la configuracion de tu agente de IA. La configuracion es la misma para cualquier agente compatible con MCP (Claude Code, Cursor, Windsurf, Cline, Continue, etc.) -- solo apuntalo al archivo compilado `dist/index.js`.
+
+**Claude Code** (`~/.claude/settings.json`):
+```json
+{
+  "mcpServers": {
+    "bsv-simple": {
+      "command": "node",
+      "args": ["/ruta/absoluta/a/simple-mcp/dist/index.js"]
+    }
+  }
+}
+```
+
+**Cursor** (`.cursor/mcp.json` en la raiz de tu proyecto):
+```json
+{
+  "mcpServers": {
+    "bsv-simple": {
+      "command": "node",
+      "args": ["/ruta/absoluta/a/simple-mcp/dist/index.js"]
+    }
+  }
+}
+```
+
+**Windsurf** (`~/.codeium/windsurf/mcp_config.json`):
+```json
+{
+  "mcpServers": {
+    "bsv-simple": {
+      "command": "node",
+      "args": ["/ruta/absoluta/a/simple-mcp/dist/index.js"]
+    }
+  }
+}
+```
+
+**Cline / Continue / Otros agentes compatibles con MCP** -- sigue el mismo patron: configura el comando como `node` y el primer argumento como la ruta absoluta a `simple-mcp/dist/index.js`.
+
+### Que Proporciona el MCP
+
+| Tipo | Cantidad | Descripcion |
+|------|----------|-------------|
+| **Recursos** | 11 | Referencias completas de API para wallet, tokens, inscripciones, MessageBox, certificacion, DID, credenciales, overlay, mas guia de integracion Next.js, errores comunes y patrones |
+| **Herramientas** | 9 | Generadores de codigo para scaffolding, configuracion de wallet, pagos, tokens, inscripciones, MessageBox, rutas de servidor, credenciales e integracion DID |
+| **Prompts** | 3 | Flujos guiados para integrar funcionalidades, agregar capacidades y depurar |
+
+### Uso
+
+Una vez configurado, el agente automaticamente tiene acceso a toda la base de conocimiento de `@bsv/simple`. Puedes pedirle que:
+
+- Genere un scaffold completo de proyecto Next.js con integracion BSV
+- Cree cualquier ruta de API del servidor (registro de identidad, resolutor DID, server wallet, emisor de credenciales) -- todas son handler factories de 3 lineas
+- Escriba codigo de pagos, tokens, inscripciones o MessageBox
+- Depure problemas especificos de BSV (el MCP incluye todos los errores comunes criticos)
+- Explique como funciona cualquier modulo con las firmas de tipos completas
+
+No necesitas alimentarlo con documentacion manualmente -- el servidor MCP proporciona todo.
+
 ## Como Empezar
 
 1. Elige un desafio acorde a tu nivel de experiencia.
 2. Lee la especificacion del desafio (`README_EN.md` o `README_ES.md` en la carpeta correspondiente).
-3. Crea un nuevo proyecto Next.js en tu espacio de trabajo (o copia el esqueleto de `solution/` y limpia `page.tsx`).
-4. Construye tu solucion usando unicamente la documentacion de `@bsv/simple`.
-5. Al terminar, compara tu enfoque con la implementacion de referencia en `solution/`.
+3. (Opcional) Configura el servidor MCP para desarrollo asistido por IA (ver arriba).
+4. Crea un nuevo proyecto Next.js en tu espacio de trabajo (o copia el esqueleto de `solution/` y limpia `page.tsx`).
+5. Construye tu solucion usando unicamente la documentacion de `@bsv/simple`.
+6. Al terminar, compara tu enfoque con la implementacion de referencia en `solution/`.
 
 Buena suerte!
